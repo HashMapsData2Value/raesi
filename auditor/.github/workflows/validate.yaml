@@ -1,0 +1,14 @@
+name: Pull Request validation
+
+on: [pull_request]
+
+
+jobs:
+  auditor-contracts-ci:
+    name: Run auditor-contracts validation
+    uses: ./.github/workflows/auditor-contracts-ci.yaml
+
+  auditor-frontend-ci:
+    name: Run auditor-frontend validation
+    uses: ./.github/workflows/auditor-frontend-ci.yaml
+

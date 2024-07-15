@@ -1,0 +1,38 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - 'docs/**'
+      - '**.md'
+      - '.vscode/**'
+      - '.idea/**'
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  auditor-contracts-validate:
+    name: Run auditor-contracts release
+    secrets: inherit
+    uses: ./.github/workflows/auditor-contracts-ci.yaml
+
+  auditor-contracts-release:
+    name: Run auditor-contracts release
+    secrets: inherit
+    uses: ./.github/workflows/auditor-contracts-cd.yaml
+    needs: auditor-contracts-validate
+
+  auditor-frontend-validate:
+    name: Run auditor-frontend release
+    secrets: inherit
+    uses: ./.github/workflows/auditor-frontend-ci.yaml
+
+  auditor-frontend-release:
+    name: Run auditor-frontend release
+    secrets: inherit
+    uses: ./.github/workflows/auditor-frontend-cd.yaml
+    needs: auditor-frontend-validate
