@@ -1,0 +1,279 @@
+#pragma version 10
+
+smart_contracts.auditor.contract.Auditor.approval_program:
+    // smart_contracts/auditor/contract.py:7
+    // class Auditor(ARC4Contract):
+    txn NumAppArgs
+    bz main_bare_routing@7
+    method "hello(string)string"
+    method "dlog(byte[],byte[],byte[],byte[])bool"
+    method "dleq(byte[],byte[],byte[],byte[],byte[],byte[],byte[])bool"
+    txna ApplicationArgs 0
+    match main_hello_route@2 main_dlog_route@3 main_dleq_route@4
+    err // reject transaction
+
+main_hello_route@2:
+    // smart_contracts/auditor/contract.py:8
+    // @abimethod()
+    txn OnCompletion
+    !
+    assert // OnCompletion is NoOp
+    txn ApplicationID
+    assert // is not creating
+    // smart_contracts/auditor/contract.py:7
+    // class Auditor(ARC4Contract):
+    txna ApplicationArgs 1
+    extract 2 0
+    // smart_contracts/auditor/contract.py:8
+    // @abimethod()
+    callsub hello
+    dup
+    len
+    itob
+    extract 6 2
+    swap
+    concat
+    byte 0x151f7c75
+    swap
+    concat
+    log
+    int 1
+    return
+
+main_dlog_route@3:
+    // smart_contracts/auditor/contract.py:29
+    // @abimethod()
+    txn OnCompletion
+    !
+    assert // OnCompletion is NoOp
+    txn ApplicationID
+    assert // is not creating
+    // smart_contracts/auditor/contract.py:7
+    // class Auditor(ARC4Contract):
+    txna ApplicationArgs 1
+    extract 2 0
+    txna ApplicationArgs 2
+    extract 2 0
+    txna ApplicationArgs 3
+    extract 2 0
+    txna ApplicationArgs 4
+    extract 2 0
+    // smart_contracts/auditor/contract.py:29
+    // @abimethod()
+    callsub dlog
+    byte 0x00
+    int 0
+    uncover 2
+    setbit
+    byte 0x151f7c75
+    swap
+    concat
+    log
+    int 1
+    return
+
+main_dleq_route@4:
+    // smart_contracts/auditor/contract.py:76
+    // @abimethod()
+    txn OnCompletion
+    !
+    assert // OnCompletion is NoOp
+    txn ApplicationID
+    assert // is not creating
+    // smart_contracts/auditor/contract.py:7
+    // class Auditor(ARC4Contract):
+    txna ApplicationArgs 1
+    extract 2 0
+    txna ApplicationArgs 2
+    extract 2 0
+    txna ApplicationArgs 3
+    extract 2 0
+    txna ApplicationArgs 4
+    extract 2 0
+    txna ApplicationArgs 5
+    extract 2 0
+    txna ApplicationArgs 6
+    extract 2 0
+    txna ApplicationArgs 7
+    extract 2 0
+    // smart_contracts/auditor/contract.py:76
+    // @abimethod()
+    callsub dleq
+    byte 0x00
+    int 0
+    uncover 2
+    setbit
+    byte 0x151f7c75
+    swap
+    concat
+    log
+    int 1
+    return
+
+main_bare_routing@7:
+    // smart_contracts/auditor/contract.py:7
+    // class Auditor(ARC4Contract):
+    txn OnCompletion
+    !
+    assert // reject transaction
+    txn ApplicationID
+    !
+    assert // is creating
+    int 1
+    return
+
+
+// smart_contracts.auditor.contract.Auditor.hello(name: bytes) -> bytes:
+hello:
+    // smart_contracts/auditor/contract.py:8-9
+    // @abimethod()
+    // def hello(self, name: String) -> String:
+    proto 1 1
+    // smart_contracts/auditor/contract.py:10
+    // return "Hello, " + name
+    byte "Hello, "
+    frame_dig -1
+    concat
+    retsub
+
+
+// smart_contracts.auditor.contract.Auditor.dlog(g: bytes, x: bytes, v: bytes, z: bytes) -> uint64:
+dlog:
+    // smart_contracts/auditor/contract.py:29-36
+    // @abimethod()
+    // def dlog(
+    //     self,
+    //     g: Bytes,
+    //     x: Bytes,
+    //     v: Bytes,
+    //     z: Bytes,
+    // ) -> bool:
+    proto 4 1
+    // smart_contracts/auditor/contract.py:39
+    // BigUInt.from_bytes(sha256(concat(g, concat(x, v))))
+    frame_dig -3
+    frame_dig -2
+    concat
+    frame_dig -4
+    swap
+    concat
+    sha256
+    // smart_contracts/auditor/contract.py:40-42
+    // % BigUInt(
+    //     21888242871839275222246405745257275088696311157297823662689037894645226208583
+    // )
+    byte 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
+    // smart_contracts/auditor/contract.py:39-42
+    // BigUInt.from_bytes(sha256(concat(g, concat(x, v))))
+    // % BigUInt(
+    //     21888242871839275222246405745257275088696311157297823662689037894645226208583
+    // )
+    b%
+    // smart_contracts/auditor/contract.py:47
+    // ec.scalar_mul(EC.BN254g1, g, z),
+    frame_dig -4
+    frame_dig -1
+    ec_scalar_mul BN254g1
+    // smart_contracts/auditor/contract.py:48
+    // ec.scalar_mul(EC.BN254g1, x, c),
+    frame_dig -3
+    uncover 2
+    ec_scalar_mul BN254g1
+    // smart_contracts/auditor/contract.py:45-49
+    // assert v == ec.add(
+    //     EC.BN254g1,
+    //     ec.scalar_mul(EC.BN254g1, g, z),
+    //     ec.scalar_mul(EC.BN254g1, x, c),
+    // )
+    ec_add BN254g1
+    frame_dig -2
+    ==
+    assert
+    // smart_contracts/auditor/contract.py:51
+    // return True
+    int 1
+    retsub
+
+
+// smart_contracts.auditor.contract.Auditor.dleq(g: bytes, x: bytes, h: bytes, y: bytes, v: bytes, w: bytes, z: bytes) -> uint64:
+dleq:
+    // smart_contracts/auditor/contract.py:76-86
+    // @abimethod()
+    // def dleq(
+    //     self,
+    //     g: Bytes,
+    //     x: Bytes,
+    //     h: Bytes,
+    //     y: Bytes,
+    //     v: Bytes,
+    //     w: Bytes,
+    //     z: Bytes,
+    // ) -> bool:
+    proto 7 1
+    // smart_contracts/auditor/contract.py:90
+    // BigUInt.from_bytes(sha256(concat(x, concat(y, concat(v, w)))))
+    frame_dig -3
+    frame_dig -2
+    concat
+    frame_dig -4
+    swap
+    concat
+    frame_dig -6
+    swap
+    concat
+    sha256
+    // smart_contracts/auditor/contract.py:91-93
+    // % BigUInt(
+    //     21888242871839275222246405745257275088696311157297823662689037894645226208583
+    // )
+    byte 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
+    // smart_contracts/auditor/contract.py:90-93
+    // BigUInt.from_bytes(sha256(concat(x, concat(y, concat(v, w)))))
+    // % BigUInt(
+    //     21888242871839275222246405745257275088696311157297823662689037894645226208583
+    // )
+    b%
+    // smart_contracts/auditor/contract.py:98
+    // ec.scalar_mul(EC.BN254g1, g, z),
+    frame_dig -7
+    frame_dig -1
+    ec_scalar_mul BN254g1
+    // smart_contracts/auditor/contract.py:99
+    // ec.scalar_mul(EC.BN254g1, x, c),
+    frame_dig -6
+    dig 2
+    ec_scalar_mul BN254g1
+    // smart_contracts/auditor/contract.py:96-100
+    // assert v == ec.add(
+    //     EC.BN254g1,
+    //     ec.scalar_mul(EC.BN254g1, g, z),
+    //     ec.scalar_mul(EC.BN254g1, x, c),
+    // )
+    ec_add BN254g1
+    frame_dig -3
+    ==
+    assert
+    // smart_contracts/auditor/contract.py:103
+    // ec.scalar_mul(EC.BN254g1, h, z),
+    frame_dig -5
+    frame_dig -1
+    ec_scalar_mul BN254g1
+    // smart_contracts/auditor/contract.py:104
+    // ec.scalar_mul(EC.BN254g1, y, c),
+    frame_dig -4
+    uncover 2
+    ec_scalar_mul BN254g1
+    // smart_contracts/auditor/contract.py:101-105
+    // assert w == ec.add(
+    //     EC.BN254g1,
+    //     ec.scalar_mul(EC.BN254g1, h, z),
+    //     ec.scalar_mul(EC.BN254g1, y, c),
+    // )
+    ec_add BN254g1
+    frame_dig -2
+    ==
+    assert
+    // smart_contracts/auditor/contract.py:106
+    // return True
+    int 1
+    retsub

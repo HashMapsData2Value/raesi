@@ -1,0 +1,7 @@
+#pragma version 10
+
+smart_contracts.auditor.contract.Auditor.clear_state_program:
+    // smart_contracts/auditor/contract.py:7
+    // class Auditor(ARC4Contract):
+    int 1
+    return
